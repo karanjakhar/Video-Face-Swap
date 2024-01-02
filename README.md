@@ -200,3 +200,4 @@ Project Link: [https://github.com/karanjakhar/Video-Face-Swap](https://github.co
 
 
  - [InsightFace](https://github.com/deepinsight/insightface)
+ - [FaceFusion](https://github.com/facefusion/facefusion)
