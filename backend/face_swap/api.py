@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from typing import List
 
 from config import UPLOAD_FOLDER, BASE_DIR
-from face_swap import run_face_swap, get_images_from_group, crop_faces
+from face_swap.face_swap import run_face_swap, get_images_from_group, crop_faces
 
 
 

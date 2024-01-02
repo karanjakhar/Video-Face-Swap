@@ -1,8 +1,7 @@
 import numpy as np
 import cv2
 
-from typing import Any, Tuple
-from utils.common import Face
+from face_swap.utils.common import Face
 
 
 def blend_frame(temp_frame, paste_frame):

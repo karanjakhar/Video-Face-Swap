@@ -1,16 +1,16 @@
-import time
 import numpy as np
 import onnxruntime
 import cv2
 import onnx
+import os
 from onnx import numpy_helper
-import models.kj_face_align as kj_face_align
+from face_swap import face_align
 
 
 
 
 class INSwapper():
-    def __init__(self, model_file=None, session=None):
+    def __init__(self, model_file=None, session=None, providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']):
         self.model_file = model_file
         self.session = session
         model = onnx.load(self.model_file)
@@ -18,9 +18,10 @@ class INSwapper():
         self.emap = numpy_helper.to_array(graph.initializer[-1])
         self.input_mean = 0.0
         self.input_std = 255.0
-        #print('input mean and std:', model_file, self.input_mean, self.input_std)
         if self.session is None:
-            self.session = onnxruntime.InferenceSession(self.model_file, providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
+            assert self.model_file is not None, "Model file path is None."
+            assert os.path.exists(self.model_file), "INSwapper weights not found."
+            self.session = onnxruntime.InferenceSession(self.model_file, providers=providers)
         inputs = self.session.get_inputs()
         self.input_names = []
         for inp in inputs:
@@ -35,7 +36,6 @@ class INSwapper():
         input_cfg = inputs[0]
         input_shape = input_cfg.shape
         self.input_shape = input_shape
-        print('inswapper-shape:', self.input_shape)
         self.input_size = tuple(input_shape[2:4][::-1])
 
     def forward(self, img, latent):
@@ -44,7 +44,7 @@ class INSwapper():
         return pred
 
     def get(self, img, target_face, source_face, paste_back=True):
-        aimg, M = kj_face_align.norm_crop2(img, target_face.kps, self.input_size[0])
+        aimg, M = face_align.norm_crop2(img, target_face.kps, self.input_size[0])
         blob = cv2.dnn.blobFromImage(aimg, 1.0 / self.input_std, self.input_size,
                                       (self.input_mean, self.input_mean, self.input_mean), swapRB=True)
         latent = source_face.normed_embedding.reshape((1,-1))
@@ -52,8 +52,6 @@ class INSwapper():
         latent /= np.linalg.norm(latent)
         pred = self.session.run(self.output_names, {self.input_names[0]: blob, self.input_names[1]: latent})[0]
         print(type(pred), pred.shape)
-        #cv2.imwrite("pred.jpg",pred[0])
-        #print(latent.shape, latent.dtype, pred.shape)
         img_fake = pred.transpose((0,2,3,1))[0]
         bgr_fake = np.clip(255 * img_fake, 0, 255).astype(np.uint8)[:,:,::-1]
         if not paste_back:
@@ -81,15 +79,11 @@ class INSwapper():
             mask_w = np.max(mask_w_inds) - np.min(mask_w_inds)
             mask_size = int(np.sqrt(mask_h*mask_w))
             k = max(mask_size//10, 10)
-            #k = max(mask_size//20, 6)
-            #k = 6
             kernel = np.ones((k,k),np.uint8)
             img_mask = cv2.erode(img_mask,kernel,iterations = 1)
             kernel = np.ones((2,2),np.uint8)
             fake_diff = cv2.dilate(fake_diff,kernel,iterations = 1)
             k = max(mask_size//20, 5)
-            #k = 3
-            #k = 3
             kernel_size = (k, k)
             blur_size = tuple(2*i+1 for i in kernel_size)
             img_mask = cv2.GaussianBlur(img_mask, blur_size, 0)
@@ -99,7 +93,6 @@ class INSwapper():
             fake_diff = cv2.GaussianBlur(fake_diff, blur_size, 0)
             img_mask /= 255
             fake_diff /= 255
-            #img_mask = fake_diff
             img_mask = np.reshape(img_mask, [img_mask.shape[0],img_mask.shape[1],1])
             fake_merged = img_mask * bgr_fake + (1-img_mask) * target_img.astype(np.float32)
             fake_merged = fake_merged.astype(np.uint8)

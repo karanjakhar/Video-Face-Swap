@@ -11,14 +11,15 @@ from face_swap.arcface_onnx import ArcFaceONNX
 from face_swap.inswapper import INSwapper
 from face_swap.face_enhancer import enhance_face
 from config import UPLOAD_FOLDER, BASE_DIR
+from config import RETINAFACE_MODEL_PATH, ARCFACE_MODEL_PATH, FACE_SWAPPER_MODEL_PATH, FACE_ENHANCER_MODEL_PATH
+from config import PROVIDERS
 
-retinaface_det_model = RetinaFace("./weights/det_10g.onnx")
+
+retinaface_det_model = RetinaFace(RETINAFACE_MODEL_PATH, providers=PROVIDERS)
 retinaface_det_model.prepare(ctx_id=1, input_size=(640, 640), det_thresh=0.5)
-arcface_emedding_model = ArcFaceONNX("./weights/w600k_r50.onnx")
-face_swapper_model = INSwapper("./weights/inswapper_128.onnx")
-
-model_path = './weights/gfpgan_1.4.onnx'
-face_enhancer_model = onnxruntime.InferenceSession(model_path, providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
+arcface_emedding_model = ArcFaceONNX(ARCFACE_MODEL_PATH, providers=PROVIDERS)
+face_swapper_model = INSwapper(FACE_SWAPPER_MODEL_PATH, providers=PROVIDERS)
+face_enhancer_model = onnxruntime.InferenceSession(FACE_ENHANCER_MODEL_PATH,providers=PROVIDERS)
 
 
 
@@ -35,8 +36,7 @@ def crop_faces(video_path: str, uid: str):
     directory = os.path.join(UPLOAD_FOLDER, uid,"cropped_faces")
     if not os.path.exists(directory):
         os.mkdir(directory)
-    with open("face_info.csv", "w") as file:
-        file.write("face_filename,frame_number,det_score,replace_face_index\n")
+    
     
     all_faces = {0:[]} # key id and value is Faces
     unique_id = 0

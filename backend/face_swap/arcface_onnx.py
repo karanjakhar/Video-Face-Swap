@@ -4,7 +4,8 @@ import numpy as np
 import cv2
 import onnx
 import onnxruntime
-from backend.face_swap.face_align import norm_crop 
+import os
+from face_swap.face_align import norm_crop 
 
 __all__ = [
     'ArcFaceONNX',
@@ -12,7 +13,7 @@ __all__ = [
 
 
 class ArcFaceONNX:
-    def __init__(self, model_file=None, session=None):
+    def __init__(self, model_file=None, session=None, providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']):
         assert model_file is not None
         self.model_file = model_file
         self.session = session
@@ -22,7 +23,6 @@ class ArcFaceONNX:
         model = onnx.load(self.model_file)
         graph = model.graph
         for nid, node in enumerate(graph.node[:8]):
-            #print(nid, node.name)
             if node.name.startswith('Sub') or node.name.startswith('_minus'):
                 find_sub = True
             if node.name.startswith('Mul') or node.name.startswith('_mul'):
@@ -36,9 +36,10 @@ class ArcFaceONNX:
             input_std = 127.5
         self.input_mean = input_mean
         self.input_std = input_std
-        #print('input mean and std:', self.input_mean, self.input_std)
         if self.session is None:
-            self.session = onnxruntime.InferenceSession(self.model_file, providers=['CPUExecutionProvider'])
+            assert self.model_file is not None, "Model file path is None."
+            assert os.path.exists(self.model_file), "ArcFace weights not found."
+            self.session = onnxruntime.InferenceSession(self.model_file, providers=providers)
         input_cfg = self.session.get_inputs()[0]
         input_shape = input_cfg.shape
         input_name = input_cfg.name

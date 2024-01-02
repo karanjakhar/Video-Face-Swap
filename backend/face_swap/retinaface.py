@@ -1,12 +1,9 @@
 from __future__ import division
-import datetime
 import numpy as np
-import onnx
 import onnxruntime
 import os
-import os.path as osp
 import cv2
-import sys
+
 
 def softmax(z):
     assert len(z.shape) == 2
@@ -64,15 +61,14 @@ def distance2kps(points, distance, max_shape=None):
     return np.stack(preds, axis=-1)
 
 class RetinaFace:
-    def __init__(self, model_file=None, session=None):
-        import onnxruntime
+    def __init__(self, model_file=None, session=None, providers=['CUDAExecutionProvider', 'CPUExecutionProvider']):
         self.model_file = model_file
         self.session = session
         self.taskname = 'detection'
         if self.session is None:
-            assert self.model_file is not None
-            assert osp.exists(self.model_file)
-            self.session = onnxruntime.InferenceSession(self.model_file, providers=['CPUExecutionProvider'])
+            assert self.model_file is not None, "Model file path is None."
+            assert os.path.exists(self.model_file), "RetinaFace weights not found."
+            self.session = onnxruntime.InferenceSession(self.model_file, providers=providers)
         self.center_cache = {}
         self.nms_thresh = 0.4
         self.det_thresh = 0.5
@@ -81,12 +77,10 @@ class RetinaFace:
     def _init_vars(self):
         input_cfg = self.session.get_inputs()[0]
         input_shape = input_cfg.shape
-        #print(input_shape)
         if isinstance(input_shape[2], str):
             self.input_size = None
         else:
             self.input_size = tuple(input_shape[2:4][::-1])
-        #print('image_size:', self.image_size)
         input_name = input_cfg.name
         self.input_shape = input_shape
         outputs = self.session.get_outputs()
@@ -97,8 +91,7 @@ class RetinaFace:
         self.output_names = output_names
         self.input_mean = 127.5
         self.input_std = 128.0
-        #print(self.output_names)
-        #assert len(outputs)==10 or len(outputs)==15
+      
         self.use_kps = False
         self._anchor_ratio = 1.0
         self._num_anchors = 1
@@ -161,22 +154,9 @@ class RetinaFace:
             if key in self.center_cache:
                 anchor_centers = self.center_cache[key]
             else:
-                #solution-1, c style:
-                #anchor_centers = np.zeros( (height, width, 2), dtype=np.float32 )
-                #for i in range(height):
-                #    anchor_centers[i, :, 1] = i
-                #for i in range(width):
-                #    anchor_centers[:, i, 0] = i
-
-                #solution-2:
-                #ax = np.arange(width, dtype=np.float32)
-                #ay = np.arange(height, dtype=np.float32)
-                #xv, yv = np.meshgrid(np.arange(width), np.arange(height))
-                #anchor_centers = np.stack([xv, yv], axis=-1).astype(np.float32)
-
-                #solution-3:
+                
                 anchor_centers = np.stack(np.mgrid[:height, :width][::-1], axis=-1).astype(np.float32)
-                #print(anchor_centers.shape)
+                
 
                 anchor_centers = (anchor_centers * stride).reshape( (-1, 2) )
                 if self._num_anchors>1:
@@ -192,7 +172,6 @@ class RetinaFace:
             bboxes_list.append(pos_bboxes)
             if self.use_kps:
                 kpss = distance2kps(anchor_centers, kps_preds)
-                #kpss = kps_preds
                 kpss = kpss.reshape( (kpss.shape[0], -1, 2) )
                 pos_kpss = kpss[pos_inds]
                 kpss_list.append(pos_kpss)
@@ -283,13 +262,6 @@ class RetinaFace:
 
         return keep
 
-def get_retinaface(name, download=False, root='~/.insightface/models', **kwargs):
-    if not download:
-        assert os.path.exists(name)
-        return RetinaFace(name)
-    else:
-        from .model_store import get_model_file
-        _file = get_model_file("retinaface_%s" % name, root=root)
-        return retinaface(_file)
+
 
 
