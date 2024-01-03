@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+opencv-python
+pydantic
+numpy
+onnx
+onnxruntime-gpu
+scikit-image
