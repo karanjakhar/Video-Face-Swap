@@ -64,6 +64,7 @@
 
 <!-- About the Project -->
 ## :star2: About the Project
+It detects faces and then group them together so you can upload a new face for a group and it will be swapped in the whole video.
 
 
 <!-- Screenshots -->
