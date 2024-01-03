@@ -55,7 +55,6 @@
     - [:running: Run Locally](#running-run-locally)
     - [:triangular\_flag\_on\_post: Deployment](#triangular_flag_on_post-deployment)
   - [:eyes: Usage](#eyes-usage)
-  - [:compass: Roadmap](#compass-roadmap)
   - [:wave: Contributing](#wave-contributing)
     - [:scroll: Code of Conduct](#scroll-code-of-conduct)
   - [:warning: License](#warning-license)
@@ -152,14 +151,6 @@ To deploy this project run
 
 Project is in two part frontend (ReactJS) and backend (Python, FastAPI). 
 To run it locally you need to run both. 
-
-
-<!-- Roadmap -->
-## :compass: Roadmap
-
-* [ ] Add DockerFile
-* [ ] Improve UI
-* [ ] Detecting NSFW
 
 
 <!-- Contributing -->

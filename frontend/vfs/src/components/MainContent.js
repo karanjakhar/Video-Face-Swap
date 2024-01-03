@@ -18,8 +18,7 @@ const MainContent = () => {
 
   const handleUpload = async () => {
     setIsLoading(true);
-    // setUid("4d315ebc-eb86-4034-8abd-1ab6aefc1515");
-    // setIsSuccessUpload(true);
+  
     const formData = new FormData();
     formData.append('file', fileInput.current.files[0]);
 
