@@ -53,7 +53,6 @@
   - [:toolbox: Getting Started](#toolbox-getting-started)
     - [:bangbang: Prerequisites](#bangbang-prerequisites)
     - [:running: Run Locally](#running-run-locally)
-    - [:triangular\_flag\_on\_post: Deployment](#triangular_flag_on_post-deployment)
   - [:eyes: Usage](#eyes-usage)
   - [:wave: Contributing](#wave-contributing)
     - [:scroll: Code of Conduct](#scroll-code-of-conduct)
@@ -134,15 +133,10 @@ Run Backend and Frontend
   cd Video-Face-Swap/backend
   python3 main.py
 ```
+Model Weights
 
-
-<!-- Deployment -->
-### :triangular_flag_on_post: Deployment
-
-To deploy this project run
-
-```bash
-  Docker file coming soon.
+```
+Download model weight files from release and place them in weights/ folder.
 ```
 
 
