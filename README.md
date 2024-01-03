@@ -69,7 +69,7 @@ It detects faces and then group them together so you can upload a new face for a
 
 <!-- Screenshots -->
 ### :camera: Screenshots
-
+<video src="assets/mark_chris_elon.mp4" controls title="Result"></video>
 <div align="center"> 
   <img src="assets/screenshot_home_page.png" />
 </div>
