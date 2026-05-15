@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const ImageDisplay = ({ uid }) => {
   const [imageGroups, setImageGroups] = useState({});
@@ -11,6 +11,16 @@ const ImageDisplay = ({ uid }) => {
 
   const groupKeys = Object.keys(imageGroups);
   const currentGroup = groupKeys[currentGroupIndex];
+
+  // Keyboard navigation logic
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "ArrowRight") nextGroup();
+      if (event.key === "ArrowLeft") previousGroup();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentGroupIndex, groupKeys.length]);
 
   const nextGroup = () => {
     if (currentGroupIndex < groupKeys.length - 1) {
@@ -34,6 +44,35 @@ const ImageDisplay = ({ uid }) => {
       const data = await response.json();
       setImageGroups(data);
     } catch (error) {
+      console.error("Failed to fetch images:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="p-4">
+      <button 
+        onClick={fetchImages} 
+        disabled={isLoading}
+        className="px-4 py-2 bg-blue-500 text-white rounded"
+      >
+        {isLoading ? "Loading..." : "Load Images"}
+      </button>
+
+      {groupKeys.length > 0 && (
+        <div className="mt-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-bold">Group: {currentGroup}</h3>
+            <span className="text-sm text-gray-500">
+              {currentGroupIndex + 1} of {groupKeys.length}
+            </span>
+          </div>
+
+          <div className="flex gap-4 mb-4">
+            <button 
+              onClick={previousGroup} 
+              disabled={
       console.error("Could not fetch images:", error);
     } finally {
       setIsLoading(false);
